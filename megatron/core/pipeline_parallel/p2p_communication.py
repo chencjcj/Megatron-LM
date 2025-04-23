@@ -565,7 +565,8 @@ def send_forward_recv_forward(
     See _communicate for argument details.
     """
     if config.timers is not None:
-        config.timers('forward-send-forward-recv', log_level=2).start()
+        #config.timers('forward-send-forward-recv', log_level=2).start()
+        pass
     input_tensor, _, wait_handles = _communicate(
         tensor_send_next=output_tensor,
         tensor_send_prev=None,
@@ -576,7 +577,8 @@ def send_forward_recv_forward(
         config=config,
     )
     if config.timers is not None:
-        config.timers('forward-send-forward-recv').stop()
+        #config.timers('forward-send-forward-recv').stop()
+        pass
     if overlap_p2p_comm:
         return input_tensor, wait_handles
     return input_tensor
@@ -594,7 +596,8 @@ def send_backward_recv_backward(
     See _communicate for argument details.
     """
     if config.timers is not None:
-        config.timers('backward-send-backward-recv', log_level=2).start()
+        #config.timers('backward-send-backward-recv', log_level=2).start()
+        pass
     _, output_tensor_grad, wait_handles = _communicate(
         tensor_send_next=None,
         tensor_send_prev=input_tensor_grad,
@@ -605,7 +608,8 @@ def send_backward_recv_backward(
         config=config,
     )
     if config.timers is not None:
-        config.timers('backward-send-backward-recv').stop()
+        pass
+        #config.timers('backward-send-backward-recv').stop()
     if overlap_p2p_comm:
         return output_tensor_grad, wait_handles
     return output_tensor_grad

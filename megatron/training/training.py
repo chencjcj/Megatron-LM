@@ -797,6 +797,7 @@ def train_step(forward_step_func, data_iterator,
             micro_batch_size=args.micro_batch_size,
             decoder_seq_length=args.decoder_seq_length,
             forward_only=False)
+            # forward_only=True)
     should_checkpoint, should_exit, exit_code = rerun_state_machine.should_checkpoint_and_exit()
     if should_exit:
         return {}, True, should_checkpoint, should_exit, exit_code, None, None
@@ -950,7 +951,7 @@ def training_log(loss_dict, total_loss_dict, learning_rate, decoupled_learning_r
     if args.log_timers_to_tensorboard and \
        (iteration % args.tensorboard_log_interval == 0):
         timers.write(timers_to_log, writer, iteration,
-                     normalizer=total_iterations)
+                     normalizer=total_iterations,reset=False)
     if writer and (iteration % args.tensorboard_log_interval == 0):
         if args.record_memory_history and is_last_rank():
             snapshot = torch.cuda.memory._snapshot()
@@ -1489,13 +1490,43 @@ def train(forward_step_func, model, optimizer, opt_param_scheduler,
         # Run training step.
         args.curr_iteration = iteration
         ft_integration.on_training_step_start()
+        # def trace_handler(prof):
+        #     # print(prof.key_averages().table(
+        #     # sort_by="self_cuda_time_total", row_limit=-1))
+        #     # if torch.distributed.get_rank() == 0:
+        #     # print(f"print profiling data of rank {torch.distributed.get_rank()} as following:\n" + prof.key_averages().table(
+        #     #         sort_by="self_cuda_time_total", row_limit=20))
+        #         #print("running into trace_handler............................................................")
+        #         #with open(f"/workspace/infrawaves/tmp/profiling_rank0_{iteration}", 'w') as file:
+        #          #   file.write(prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
+        #     prof.export_chrome_trace("/workspace/tmp1/test_trace_" + str(torch.distributed.get_rank()) + "_" + str(iteration) + ".json")
+        # with torch.profiler.profile(
+        #     activities=[
+        #         torch.profiler.ProfilerActivity.CPU,
+        #         torch.profiler.ProfilerActivity.CUDA,
+        #     ],
+        #     schedule=torch.profiler.schedule(
+        #         wait=0,
+        #         warmup=0,
+        #         active=1,
+        #         repeat=1),
+        #     on_trace_ready=trace_handler
+        # ) as p:
         loss_dict, skipped_iter, should_checkpoint, should_exit, exit_code, grad_norm, num_zeros_in_grad = \
-            train_step(forward_step_func,
+                train_step(forward_step_func,
                        train_data_iterator,
                        model,
                        optimizer,
                        opt_param_scheduler,
                        config)
+            # p.step()
+            # loss_dict, skipped_iter, should_checkpoint, should_exit, exit_code, grad_norm, num_zeros_in_grad = \
+            # train_step(forward_step_func,
+            #            train_data_iterator,
+            #            model,
+            #            optimizer,
+            #            opt_param_scheduler,
+            #            config)
         ft_integration.on_training_step_end()
         if should_checkpoint:
             save_checkpoint_and_time(iteration, model, optimizer,
@@ -1944,3 +1975,4 @@ def build_train_valid_test_data_iterators(
         test_data_iterator = None
 
     return train_data_iterator, valid_data_iterator, test_data_iterator
+

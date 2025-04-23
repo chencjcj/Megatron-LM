@@ -251,7 +251,8 @@ def forward_step(
         Tensor: The number of tokens.
     """
     if config.timers is not None:
-        config.timers('forward-compute', log_level=2).start()
+       # config.timers('forward-compute', log_level=2).start()
+       pass
 
     if is_first_microbatch and hasattr(model, 'set_is_first_microbatch'):
         model.set_is_first_microbatch()
@@ -298,7 +299,8 @@ def forward_step(
             forward_data_store.append(data)
 
     if config.timers is not None:
-        config.timers('forward-compute').stop()
+       # config.timers('forward-compute').stop()
+       pass
 
     # Set the loss scale for the auxiliary loss of the MoE layer.
     # Since we use a trick to do backward on the auxiliary loss, we need to set the scale
@@ -342,7 +344,8 @@ def backward_step(input_tensor, output_tensor, output_tensor_grad, model_type, c
     # connections.
 
     if config.timers is not None:
-        config.timers('backward-compute', log_level=2).start()
+       # config.timers('backward-compute', log_level=2).start()
+       pass
 
     # Retain the grad on the input_tensor.
     unwrap_input_tensor_grad = False
@@ -391,7 +394,8 @@ def backward_step(input_tensor, output_tensor, output_tensor_grad, model_type, c
         input_tensor_grad = input_tensor_grad[0]
 
     if config.timers is not None:
-        config.timers('backward-compute').stop()
+       # config.timers('backward-compute').stop()
+       pass
 
     return input_tensor_grad
 
@@ -1245,7 +1249,8 @@ def forward_backward_pipelining_with_interleaving(
                     if recv_next_wait_handles is not None and recv_next_wait_handles:
                         recv_next_wait_handle = recv_next_wait_handles.pop(0)
                         recv_next_wait_handle.wait()
-
+                        
+            torch.cuda.synchronize()
             input_tensor_grad = backward_step_helper(backward_k)
 
             # First virtual stage no activation gradient tensor to send.
@@ -1394,7 +1399,7 @@ def forward_backward_pipelining_with_interleaving(
 
                 if bwd_wait_recv_handles:
                     recv_next_wait_handles.append(bwd_wait_recv_handles.pop("recv_next"))
-
+            torch.cuda.synchronize()
             input_tensor_grad = backward_step_helper(k)
 
             # First virtual stage no activation gradient tensor to send.

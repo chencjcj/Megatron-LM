@@ -1,30 +1,28 @@
 pipeline {
     agent any
+    parameters {
+        string(name: 'ghprbCommentBody', defaultValue: '', description: 'PR 评论内容')
+    }
     stages {
-        stage('Build') {
-            steps {
-                echo 'Hello Jenkins'
-            }
-        }
         stage('Check PR Comment') {
-            steps {
-                script {
-                    def comment = env.CHANGE_COMMENT ?: ''
-                    echo "PR comment: ${comment}"
-
-                    if (!comment.contains("🚀") && !comment.contains(":rocket:")) {
-                        echo "No rocket emoji found in comment, skipping e2e tests."
-                        currentBuild.result = 'SUCCESS'
-                        return
-                    }
+            when {
+                expression {
+                    return params.ghprbCommentBody.contains('🚀') || params.ghprbCommentBody.contains(':rocket:')
                 }
+            }
+            steps {
+                echo "Triggered by 🚀 PR comment: ${params.ghprbCommentBody}"
             }
         }
         stage('Run Baseline E2E Tests') {
+            when {
+                expression {
+                    return params.ghprbCommentBody.contains('🚀') || params.ghprbCommentBody.contains(':rocket:')
+                }
+            }
             steps {
-                echo 'Running baseline e2e training...'
+                echo 'Running e2e training...'
             }
         }
     }
 }
-

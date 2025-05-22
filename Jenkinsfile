@@ -27,7 +27,6 @@ pipeline {
             }
             steps {
                 echo 'Running baseline e2e training...'
-                // 这里写具体的测试命令
             }
         }
     }
